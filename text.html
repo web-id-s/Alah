@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Simulasi Sending Bug — Demo Aman</title>
+  <style>
+    :root{
+      --bg:#0f1724;
+      --card:#0b1520;
+      --accent:#7c3aed;
+      --muted:#9aa4b2;
+      --glass: rgba(255,255,255,0.03);
+    }
+    *{box-sizing:border-box;font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
+    body{margin:0;background:linear-gradient(180deg,#031022 0%, #07152a 60%);color:#e6eef8;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:28px}
+    .container{width:920px;max-width:100%;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);border-radius:14px;padding:26px;box-shadow:0 10px 30px rgba(2,6,23,0.6);border:1px solid rgba(255,255,255,0.03)}
+    header{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+    .logo{width:64px;height:64px;border-radius:12px;background:linear-gradient(135deg,#2dd4bf,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:28px}
+    h1{margin:0;font-size:20px}
+    p.lead{margin:0;color:var(--muted);font-size:13px}
+    .grid{display:grid;grid-template-columns:1fr 360px;gap:18px;margin-top:18px}
+    .card{background:var(--card);padding:18px;border-radius:12px;border:1px solid rgba(255,255,255,0.02)}
+    label{display:block;font-size:13px;color:var(--muted);margin-bottom:8px}
+    input[type="text"]{width:100%;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:var(--glass);color:inherit;font-size:15px}
+    .features{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+    .feature{display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);border:1px solid rgba(255,255,255,0.02)}
+    .feature input{transform:scale(1.1);margin-right:6px}
+    .feature .title{font-weight:600}
+    .skull{font-size:18px;margin-left:auto;opacity:0.9}
+    .controls{display:flex;gap:10px;margin-top:16px;align-items:center}
+    .btn{padding:10px 14px;border-radius:10px;border:0;cursor:pointer;font-weight:600}
+    .btn.primary{background:linear-gradient(90deg,var(--accent),#06b6d4);color:#021018;box-shadow:0 6px 18px rgba(124,58,237,0.18)}
+    .btn.ghost{background:transparent;color:var(--muted);border:1px solid rgba(255,255,255,0.03)}
+    .right-col{display:flex;flex-direction:column;gap:12px}
+    .card.small{padding:12px}
+    .status{font-size:13px;color:var(--muted)}
+    .preview{background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);padding:12px;border-radius:10px;border:1px dashed rgba(255,255,255,0.02)}
+    /* spinner */
+    .spinner{width:48px;height:48px;border-radius:50%;border:5px solid rgba(255,255,255,0.06);border-top-color:var(--accent);animation:spin 1s linear infinite;margin:18px auto}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    /* modal */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:60}
+    .modal{background:#021527;padding:20px;border-radius:12px;width:360px;color:#d9f1ff;border:1px solid rgba(255,255,255,0.03);text-align:center}
+    .modal h3{margin:0 0 8px}
+    .result-success{color:#a7f3d0}
+    .result-fail{color:#fecaca}
+    footer{margin-top:16px;color:var(--muted);font-size:13px;text-align:center}
+    .hint{font-size:12px;color:var(--muted);margin-top:8px}
+    .tag{display:inline-block;padding:6px 8px;border-radius:8px;background:rgba(255,255,255,0.02);font-size:12px;color:var(--muted);border:1px solid rgba(255,255,255,0.02)}
+  </style>
+</head>
+<body>
+  <div class="container" role="main">
+    <header>
+      <div class="logo">💀</div>
+      <div>
+        <h1>Simulasi Sending Bug — Demo Aman</h1>
+        <p class="lead">Antarmuka simulasi visual. <strong>Tidak melakukan pengiriman nyata.</strong></p>
+      </div>
+    </header>
+
+    <div class="grid">
+      <div class="card">
+        <label for="target">Nomor Target (harus berawalan <span class="tag">62</span>)</label>
+        <input id="target" type="text" placeholder="contoh: 6281234567890" inputmode="numeric" autocomplete="off" />
+
+        <div class="hint">Masukkan nomor tanpa tanda + atau 0. Simulasi hanya menerima nomor yang dimulai dengan <strong>62</strong>.</div>
+
+        <div class="features" aria-hidden="false">
+          <div style="margin-top:16px;font-size:13px;color:var(--muted)">Pilih Fitur (simulasi) — <span style="font-size:16px">💀</span></div>
+
+          <label class="feature"><input type="checkbox" id="f_delayHard" /> <div><div class="title">Delay Hard</div><div class="status">Menambah jeda lama pada simulasi</div></div><div class="skull">💀</div></label>
+
+          <label class="feature"><input type="checkbox" id="f_iosClose" /> <div><div class="title">iOS Force Close</div><div class="status">Simulasi notifikasi crash pada target iOS</div></div><div class="skull">🍏</div></label>
+
+          <label class="feature"><input type="checkbox" id="f_andClose" /> <div><div class="title">Android Force Close</div><div class="status">Simulasi notifikasi crash pada target Android</div></div><div class="skull">🤖</div></label>
+
+          <label class="feature"><input type="checkbox" id="f_autoC1" /> <div><div class="title">Auto C1</div><div class="status">Simulasi pengiriman otomatis mode C1</div></div><div class="skull">⚙️</div></label>
+
+          <label class="feature"><input type="checkbox" id="f_delayInv" /> <div><div class="title">Delay Invisible</div><div class="status">Simulasi delay tersembunyi</div></div><div class="skull">👻</div></label>
+        </div>
+
+        <div class="controls">
+          <button id="sendBtn" class="btn primary">🚀 Sending Bug (Simulasi)</button>
+          <button id="sendAnonBtn" class="btn ghost">📤 Kirim Pesan Tanpa Sender Nomer (Simulasi)</button>
+        </div>
+
+        <div class="hint" style="margin-top:12px">Hanya untuk demo UI & testing. Jangan gunakan kode ini untuk tujuan nyata yang merugikan.</div>
+      </div>
+
+      <aside class="right-col">
+        <div class="card small">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <div style="font-size:13px;color:var(--muted)">Preview Simulasi</div>
+              <div style="font-weight:700">Status: <span id="simStatus">Idle</span></div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:12px;color:var(--muted)">Tema</div>
+              <div style="font-weight:700">Keren / Gelap</div>
+            </div>
+          </div>
+
+          <div class="preview" id="previewBox" style="margin-top:12px">
+            <div style="font-size:13px;color:var(--muted)">Log simulasi (visual):</div>
+            <div id="logArea" style="margin-top:8px;font-size:13px;min-height:80px;color:#dbeafe">Tidak ada aksi.</div>
+          </div>
+        </div>
+
+        <div class="card small">
+          <div style="font-weight:700">Informasi</div>
+          <div class="status" style="margin-top:8px">Validasi nomor: harus <strong>mulai dengan 62</strong>. Jika tidak valid, simulasi akan menampilkan kegagalan.</div>
+        </div>
+      </aside>
+    </div>
+
+    <footer>Demonstrasi antarmuka — aman & lokal. Dibuat untuk keperluan edukasi/desain.</footer>
+  </div>
+
+  <!-- Modal container (dibuat dinamis) -->
+  <div id="modalRoot" aria-live="polite"></div>
+
+  <script>
+    // Utility sederhana
+    const $ = sel => document.querySelector(sel);
+    const targetInput = $('#target');
+    const sendBtn = $('#sendBtn');
+    const sendAnonBtn = $('#sendAnonBtn');
+    const logArea = $('#logArea');
+    const simStatus = $('#simStatus');
+    const modalRoot = $('#modalRoot');
+
+    function addLog(txt){
+      const time = new Date().toLocaleTimeString();
+      logArea.innerHTML = `<div>· [${time}] ${txt}</div>` + logArea.innerHTML;
+    }
+
+    function validateNumber(n){
+      if(!n) return false;
+      n = n.trim();
+      // hanya digit dan harus mulai dengan 62
+      if(!/^\d+$/.test(n)) return false;
+      return n.startsWith('62') && n.length >= 8 && n.length <= 15;
+    }
+
+    function showModal({title,content,showSpinner=false,success=true,autoClose=2000}){
+      // hapus modal lama
+      modalRoot.innerHTML = '';
+      const el = document.createElement('div');
+      el.className = 'modal-backdrop';
+      el.innerHTML = `
+        <div class="modal" role="dialog" aria-modal="true">
+          ${showSpinner ? '<div class="spinner" aria-hidden="true"></div>' : ''}
+          <h3>${title}</h3>
+          <div style="margin-top:8px">${content}</div>
+        </div>
+      `;
+      modalRoot.appendChild(el);
+      if(!showSpinner){
+        // tambahkan close button
+        const btn = document.createElement('button');
+        btn.textContent = 'Tutup';
+        btn.className = 'btn ghost';
+        btn.style.marginTop = '12px';
+        el.querySelector('.modal').appendChild(btn);
+        btn.addEventListener('click', ()=> modalRoot.innerHTML = '');
+      } else {
+        // kalau spinner, auto close setelah delay
+        setTimeout(()=>{
+          // ganti konten menjadi result
+          el.querySelector('.modal').innerHTML = `
+            <h3>${success ? 'Berhasil' : 'Gagal'}</h3>
+            <div style="margin-top:8px" class="${success ? 'result-success' : 'result-fail'}">${content}</div>
+            <div style="margin-top:12px"><button id="modalClose" class="btn ghost">Tutup</button></div>
+          `;
+          document.getElementById('modalClose').addEventListener('click', ()=> modalRoot.innerHTML = '');
+        }, autoClose);
+      }
+    }
+
+    function simulateSend({number,features}){
+      simStatus.textContent = 'Processing...';
+      addLog(`Mulai simulasi ke ${number}`);
+      // compute simulated delay
+      let delay = 1200;
+      if(features.delayHard) delay += 4000;
+      if(features.delayInv) delay += 2500;
+      if(features.autoC1) delay += 1000;
+      if(features.iosClose || features.andClose) delay += 1400;
+
+      // show modal with spinner
+      showModal({
+        title: 'Mengirim (simulasi)...',
+        content: 'Tunggu proses simulasi selesai.',
+        showSpinner: true,
+        success: true,
+        autoClose: delay
+      });
+
+      // log intermediate steps
+      setTimeout(()=> addLog('Menjalankan langkah-langkah simulasi...'), 500);
+      setTimeout(()=> addLog('Mengeksekusi fitur: ' + Object.keys(features).filter(k=>features[k]).join(', ') || 'tidak ada'), 900);
+
+      // After delay, show final result based on number validity
+      setTimeout(()=>{
+        const ok = validateNumber(number);
+        if(ok){
+          addLog('Simulasi selesai: BERHASIL ✅');
+          simStatus.textContent = 'Sukses';
+        } else {
+          addLog('Simulasi selesai: GAGAL ❌ (nomor tidak valid)');
+          simStatus.textContent = 'Gagal';
+        }
+      }, delay + 200);
+    }
+
+    sendBtn.addEventListener('click', ()=>{
+      const number = targetInput.value.trim();
+      // collect features
+      const features = {
+        delayHard: !!$('#f_delayHard').checked,
+        iosClose: !!$('#f_iosClose').checked,
+        andClose: !!$('#f_andClose').checked,
+        autoC1: !!$('#f_autoC1').checked,
+        delayInv: !!$('#f_delayInv').checked
+      };
+
+      // basic client-side "loading spinner while validating" simulation
+      // if number doesn't even look numeric, show immediate fail modal
+      if(!/^[\d+]*$/.test(number) || number.length === 0){
+        showModal({title:'Gagal', content:'Nomor tidak valid. Masukkan hanya angka dan pastikan berawalan 62.', showSpinner:false, success:false});
+        addLog('Input invalid: mengandung karakter non-digit atau kosong.');
+        simStatus.textContent = 'Idle';
+        return;
+      }
+
+      // start simulated process
+      simulateSend({number,features});
+    });
+
+    // Kirim pesan tanpa sender (simulasi) — hanya tampilan
+    sendAnonBtn.addEventListener('click', ()=>{
+      const number = targetInput.value.trim();
+      if(!number){
+        showModal({title:'Perhatian', content:'Masukkan nomor target terlebih dahulu untuk simulasi.', showSpinner:false, success:false});
+        return;
+      }
+      addLog('Memulai simulasi "Kirim Pesan Tanpa Sender Nomer" ke ' + number);
+      // quick spinner modal then success/fail
+      showModal({title:'Mengirim anonim (simulasi)...', content:'Sedang memproses...', showSpinner:true, success:true, autoClose:1300});
+      setTimeout(()=>{
+        const ok = validateNumber(number);
+        if(ok){
+          addLog('Simulasi anonim: BERHASIL');
+          simStatus.textContent = 'Sukses (Anonim)';
+        } else {
+          addLog('Simulasi anonim: GAGAL — nomor tidak valid');
+          simStatus.textContent = 'Gagal';
+        }
+      }, 1400);
+    });
+
+    // keyboard enter to trigger send
+    targetInput.addEventListener('keyup', (e)=>{
+      if(e.key === 'Enter') sendBtn.click();
+    });
+
+    // initial log
+    addLog('Simulasi siap. Masukkan nomor target untuk memulai.');
+  </script>
+</body>
+</html>
